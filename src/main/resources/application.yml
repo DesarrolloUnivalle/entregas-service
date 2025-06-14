@@ -1,0 +1,121 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: entregas-service
+  
+  datasource:
+    url: jdbc:postgresql://ep-withered-king-aa21vv8q-pooler.westus3.azure.neon.tech:5432/neondb?user=neondb_owner&password=npg_0gnbkuv5IWlH&sslmode=require
+    username: neondb_owner
+    password: npg_0gnbkuv5IWlH
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  kafka:
+    bootstrap-servers: localhost:9092
+    topics:
+      pedido-creado: pedido-creado
+      entrega-asignada: entrega-asignada
+      entrega-completada: entrega-completada
+
+    # Producer Configuration
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add-type-headers: false  # Evitar metadatos de tipo en mensajes
+        acks: all                           # Garantía de entrega (replicación)
+        retries: 3                          # Reintentos en caso de error
+        linger.ms: 10                       # Espera para agrupar mensajes
+
+    # Consumer Configuration
+    consumer:
+      group-id: entregas-group              # Grupo de consumidores
+      auto-offset-reset: earliest           # Leer desde el inicio si no hay offset
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"   # Permitir deserialización de cualquier paquete
+        spring.json.value.default.type: com.tienda.entregas.dto.PedidoCreadoEvent  # Tipo por defecto para el consumer
+        enable.auto.commit: false           # Control manual de commits (mejor control)
+        max.poll.interval.ms: 300000        # Tiempo máximo para procesar mensajes
+
+    # Admin Configuration (opcional)
+    admin:
+      properties:
+        bootstrap.servers: localhost:9092
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: ""  
+
+  mvc:
+    cors:
+      allowed-origins: http://localhost:3000
+      allowed-methods: GET, POST, PUT, DELETE
+      allowed-headers: "*"
+      allow-credentials: true
+
+jwt:
+  secret: "+7xPjMy3ShEYQClRLDpvwcy6GjDADONvh10c4iMxFrU="
+  expiration: 3600000  
+  issuer: miapp
+
+usuarios-service:
+  url: http://localhost:8082  
+
+feign:
+  client:
+    config:
+      default:
+          connectTimeout: 5000
+          readTimeout: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.tienda.entregas: DEBUG
+    org.springframework.web: DEBUG
+
+  pattern:
+    level: "%5p [${spring.application.name}, %X{traceId:-},%X{spanId:-}]"
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    instance-id: "${spring.application.name}:${spring.application.instance_id:${random.value}}"
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /doc/swagger-ui.html
+  
