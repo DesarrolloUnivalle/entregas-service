@@ -16,7 +16,12 @@ spring:
       ddl-auto: update
     show-sql: true
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-
+  
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
+  sleuth:
+    enabled: false
   kafka:
     bootstrap-servers: localhost:9092
     topics:
@@ -69,8 +74,6 @@ jwt:
   expiration: 3600000  
   issuer: miapp
 
-usuarios-service:
-  url: http://localhost:8082  
 
 feign:
   client:
@@ -83,15 +86,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, metrics
+        include: health, info, metrics, *
   endpoint:
     health:
       show-details: always
     metrics:
       enabled: true
-  zipkin:
-    tracing:
-      endpoint: http://localhost:9411/api/v2/spans
   tracing:
     sampling:
       probability: 1.0
