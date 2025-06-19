@@ -9,15 +9,13 @@ import com.tienda.entregas.kafka.KafkaProducer;
 import com.tienda.entregas.model.entity.Entrega;
 import com.tienda.entregas.model.entity.Entrega.EntregaStatus;
 import com.tienda.entregas.repository.EntregaRepository;
+import com.tienda.entregas.service.TokenService;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,25 +36,16 @@ class EntregaServiceImplTest {
     @Mock
     private KafkaProducer kafkaProducer;
 
+    @Mock
+    private TokenService tokenService;
+
     @InjectMocks
     private EntregaServiceImpl entregaService;
-
-    @Mock
-    private Jwt jwt;
-
-    @Mock
-    private Authentication authentication;
-
-    @Mock
-    private SecurityContext securityContext;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(jwt);
-        when(jwt.getTokenValue()).thenReturn("mocked-token");
+        when(tokenService.obtenerToken()).thenReturn("mocked-token");
     }
 
     @Test
