@@ -29,3 +29,5 @@ logging:
   level:
     root: WARN
     org.springframework.web: DEBUG
+    org.springframework.boot.test: DEBUG
+    com.tienda.entregas: DEBUG
