@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: entregas-service-deployment
+  labels:
+    app: entregas-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: entregas-service
+  template:
+    metadata:
+      labels:
+        app: entregas-service
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      containers:
+      - name: entregas-service-container
+        image: ${DOCKER_USERNAME}/entregas-service:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        - name: DATABASE_URL
+          value: "jdbc:postgresql://ep-withered-king-aa21vv8q-pooler.westus3.azure.neon.tech:5432/neondb?user=neondb_owner&password=npg_0gnbkuv5IWlH&sslmode=require"
+        - name: DATABASE_USERNAME
+          value: "neondb_owner"
+        - name: DATABASE_PASSWORD
+          value: "npg_0gnbkuv5IWlH"
+        - name: JWT_SECRET
+          value: "+7xPjMy3ShEYQClRLDpvwcy6GjDADONvh10c4iMxFrU="
+        - name: JWT_EXPIRATION
+          value: "3600000"
+        - name: JWT_ISSUER
+          value: "miapp"
+        - name: ADMIN_USERNAME
+          value: "admin"
+        - name: ADMIN_PASSWORD
+          value: "admin123"
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 8080
+          initialDelaySeconds: 45
+          periodSeconds: 15
+          timeoutSeconds: 5
+          failureThreshold: 3 

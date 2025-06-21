@@ -1,39 +1,35 @@
 server:
   port: 8080
+
 spring:
   application:
     name: entregas-service
   security:
     user:
-      name: admin
-      password: admin123
+      name: ${ADMIN_USERNAME:admin}
+      password: ${ADMIN_PASSWORD:admin123}
 
   datasource:
-    url: jdbc:postgresql://ep-withered-king-aa21vv8q-pooler.westus3.azure.neon.tech:5432/neondb?user=neondb_owner&password=npg_0gnbkuv5IWlH&sslmode=require
-    username: neondb_owner
-    password: npg_0gnbkuv5IWlH
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
-  zipkin:
-    base-url: http://localhost:9411
-    enabled: true
-  sleuth:
-    enabled: false
 
 jwt:
-  secret: "+7xPjMy3ShEYQClRLDpvwcy6GjDADONvh10c4iMxFrU="
-  expiration: 3600000  # 1 hora en milisegundos
-  issuer: miapp
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:3600000}
+  issuer: ${JWT_ISSUER:miapp}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
   instance:
     instance-id: "${spring.application.name}:${spring.application.instance_id:${random.value}}"
 
@@ -44,7 +40,6 @@ springdoc:
     enabled: true
     path: /doc/swagger-ui.html
 
-# Tracing y Management
 management:
   endpoints:
     web:
@@ -68,6 +63,6 @@ management:
 
 logging:
   level:
-    root: debug
+    root: INFO
   pattern:
-    level: "%5p [${spring.application.name}, %X{traceId:-},%X{spanId:-}]"
+    level: "%5p [${spring.application.name}, %X{traceId:-},%X{spanId:-}]" 
