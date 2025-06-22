@@ -14,6 +14,7 @@ import com.tienda.entregas.service.EntregaService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,13 +26,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class EntregaServiceImpl implements EntregaService {
 
     private static final Logger logger = LoggerFactory.getLogger(EntregaServiceImpl.class);
+    
     private final EntregaRepository entregaRepository;
     private final UsuarioClient usuarioClient;
-    private final KafkaProducer kafkaProducer;
+    
+    @Autowired(required = false)
+    private KafkaProducer kafkaProducer;
+
+    public EntregaServiceImpl(EntregaRepository entregaRepository, UsuarioClient usuarioClient) {
+        this.entregaRepository = entregaRepository;
+        this.usuarioClient = usuarioClient;
+    }
 
     private String obtenerToken() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -88,7 +96,14 @@ public class EntregaServiceImpl implements EntregaService {
         entrega.setDireccionEntrega(request.getDireccionEntrega());
 
         Entrega savedEntrega = entregaRepository.save(entrega);
-        kafkaProducer.publicarEventoEntregaAsignada(savedEntrega);
+        
+        // Publicar evento solo si Kafka está disponible
+        if (kafkaProducer != null) {
+            kafkaProducer.publicarEventoEntregaAsignada(savedEntrega);
+            logger.info("Evento de entrega asignada publicado en Kafka");
+        } else {
+            logger.warn("KafkaProducer no disponible, omitiendo publicación de evento");
+        }
 
         return mapToEntregaResponse(savedEntrega);
     }
@@ -119,7 +134,14 @@ public class EntregaServiceImpl implements EntregaService {
             entrega.setFechaInicio(LocalDateTime.now());
         } else if (status == EntregaStatus.Entregado) {
             entrega.setFechaEntrega(LocalDateTime.now());
-            kafkaProducer.publicarEventoEntregaCompletada(entrega); // Notificar a órdenes
+            
+            // Publicar evento solo si Kafka está disponible
+            if (kafkaProducer != null) {
+                kafkaProducer.publicarEventoEntregaCompletada(entrega);
+                logger.info("Evento de entrega completada publicado en Kafka");
+            } else {
+                logger.warn("KafkaProducer no disponible, omitiendo publicación de evento");
+            }
         }
 
         return mapToEntregaResponse(entregaRepository.save(entrega));
@@ -170,7 +192,14 @@ public class EntregaServiceImpl implements EntregaService {
         entrega.setDireccionEntrega(direccionEntrega);
 
         Entrega savedEntrega = entregaRepository.save(entrega);
-        kafkaProducer.publicarEventoEntregaAsignada(savedEntrega);
+        
+        // Publicar evento solo si Kafka está disponible
+        if (kafkaProducer != null) {
+            kafkaProducer.publicarEventoEntregaAsignada(savedEntrega);
+            logger.info("Evento de entrega asignada publicado en Kafka");
+        } else {
+            logger.warn("KafkaProducer no disponible, omitiendo publicación de evento");
+        }
     }
 
     @Override
@@ -203,9 +232,8 @@ public class EntregaServiceImpl implements EntregaService {
         return EntregaResponse.builder()
                 .id(entrega.getId())
                 .ordenId(entrega.getOrdenId())
-                .pedidoId(entrega.getPedidoId())
                 .repartidorId(entrega.getRepartidorId())
-                .estado(entrega.getEstado() != null ? entrega.getEstado().getValor() : null)
+                .estado(entrega.getEstado().getValor())
                 .fechaAsignacion(entrega.getFechaAsignacion())
                 .fechaInicio(entrega.getFechaInicio())
                 .fechaEntrega(entrega.getFechaEntrega())

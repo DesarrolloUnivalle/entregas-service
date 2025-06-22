@@ -58,23 +58,32 @@ El proyecto incluye un workflow de GitHub Actions que:
 4. **Verificación**: Valida que el servicio esté funcionando
 5. **Logs detallados**: Proporciona información completa para debugging
 
-### Opciones de despliegue
+### Configuración actual: Opción 2 - Entorno Completo
 
-#### Opción 1: Perfil Test (Recomendado para CI/CD)
-El workflow usa el perfil `test` que:
-- ✅ Deshabilita Kafka y Redis
-- ✅ Deshabilita Eureka
-- ✅ Mantiene solo PostgreSQL y funcionalidades básicas
-- ✅ Permite testing rápido sin dependencias externas
+El workflow actual usa el perfil `prod` y despliega todos los servicios necesarios:
 
-#### Opción 2: Perfil Prod con servicios completos
-Para un entorno más realista, puedes:
-- Usar el perfil `prod` en el deployment
-- Desplegar Kafka y Redis usando los manifiestos incluidos:
-  ```bash
-  kubectl apply -f kubernetes/kafka-deployment.yml
-  kubectl apply -f kubernetes/redis-deployment.yml
-  ```
+#### Servicios desplegados automáticamente:
+- ✅ **Kafka + Zookeeper**: Para mensajería de eventos
+- ✅ **Redis**: Para cache de datos
+- ✅ **Servicio de Entregas**: Con todas las funcionalidades habilitadas
+
+#### Configuración del perfil `prod`:
+- ✅ Kafka habilitado y conectado
+- ✅ Redis habilitado y conectado
+- ✅ Eureka habilitado (aunque no se despliega automáticamente)
+- ✅ Todas las funcionalidades de mensajería activas
+
+### Alternativa: Opción 1 - Perfil Test
+
+Si prefieres un despliegue más rápido sin dependencias externas:
+
+1. Cambiar en `kubernetes/deployment.yml`:
+   ```yaml
+   - name: SPRING_PROFILES_ACTIVE
+     value: "test"
+   ```
+
+2. Comentar el paso "Deploy Kafka and Redis" en el workflow
 
 ### Secrets requeridos
 
@@ -95,6 +104,7 @@ El workflow se ejecuta automáticamente en:
 ### application-prod.yml
 - Configuración para producción con URLs de Kubernetes
 - Kafka, Redis y Eureka habilitados
+- **Actualmente en uso**
 
 ### application-test.yml
 - Configuración para testing sin dependencias externas
@@ -107,7 +117,6 @@ El servicio está configurado con logs detallados para facilitar el debugging:
 
 - Logs de seguridad (Spring Security)
 - Logs de la aplicación (com.tienda.entregas)
-- Logs de Web (Spring Web)
 - Logs de Kafka (solo cuando está habilitado)
 - Logs de Redis (solo cuando está habilitado)
 - Logs de Feign Client
@@ -124,12 +133,32 @@ El servicio está configurado con logs detallados para facilitar el debugging:
 
 ### Error: "No resolvable bootstrap urls given in bootstrap.servers"
 - **Causa**: El servicio está intentando conectarse a Kafka pero no está disponible
-- **Solución**: Usar el perfil `test` o desplegar Kafka
+- **Solución**: Verificar que Kafka esté desplegado y funcionando
 
 ### Error: "Connection refused" para Redis
 - **Causa**: El servicio está intentando conectarse a Redis pero no está disponible
-- **Solución**: Usar el perfil `test` o desplegar Redis
+- **Solución**: Verificar que Redis esté desplegado y funcionando
 
 ### Error: "Cannot execute request on any known server" para Eureka
 - **Causa**: El servicio está intentando registrarse en Eureka pero no está disponible
-- **Solución**: Usar el perfil `test` o desplegar Eureka Server 
+- **Solución**: Verificar que Eureka Server esté desplegado o cambiar a perfil test
+
+### Error: "KafkaProducer no disponible"
+- **Causa**: El servicio está en perfil test pero intenta usar Kafka
+- **Solución**: El servicio maneja esto automáticamente, solo omite la publicación de eventos
+
+## Arquitectura del despliegue
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Entregas      │    │     Kafka       │    │     Redis       │
+│   Service       │◄──►│   + Zookeeper   │    │                 │
+│   (2 replicas)  │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│   PostgreSQL    │
+│   (Neon Cloud)  │
+└─────────────────┘
+``` 
