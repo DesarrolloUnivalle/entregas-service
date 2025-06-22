@@ -29,9 +29,9 @@ spec:
         - name: SERVER_PORT
           value: "8083"
         - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka:9092"
+          value: "kafka-service:9092"
         - name: SPRING_DATA_REDIS_HOST
-          value: "redis"
+          value: "redis-service"
         - name: SPRING_DATA_REDIS_PORT
           value: "6379"
         - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
