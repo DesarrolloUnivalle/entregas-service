@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: entregas-service-service
+spec:
+  selector:
+    app: entregas-service
+  ports:
+    - protocol: TCP
+      port: 8083
+      targetPort: 8083
+      nodePort: 30083
+  type: NodePort 

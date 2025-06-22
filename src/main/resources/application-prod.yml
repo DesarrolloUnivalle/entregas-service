@@ -14,57 +14,55 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   
   zipkin:
-    base-url: http://localhost:9411
+    base-url: http://zipkin:9411
     enabled: true
   sleuth:
     enabled: false
+    
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: kafka:9092
     topics:
       pedido-creado: pedido-creado
       entrega-asignada: entrega-asignada
       entrega-completada: entrega-completada
 
-    # Producer Configuration
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-        spring.json.add-type-headers: false  # Evitar metadatos de tipo en mensajes
-        acks: all                           # Garantía de entrega (replicación)
-        retries: 3                          # Reintentos en caso de error
-        linger.ms: 10                       # Espera para agrupar mensajes
+        spring.json.add-type-headers: false
+        acks: all
+        retries: 3
+        linger.ms: 10
 
-    # Consumer Configuration
     consumer:
-      group-id: entregas-group              # Grupo de consumidores
-      auto-offset-reset: earliest           # Leer desde el inicio si no hay offset
+      group-id: entregas-group
+      auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "*"   # Permitir deserialización de cualquier paquete
-        spring.json.value.default.type: com.tienda.entregas.dto.PedidoCreadoEvent  # Tipo por defecto para el consumer
-        enable.auto.commit: false           # Control manual de commits (mejor control)
-        max.poll.interval.ms: 300000        # Tiempo máximo para procesar mensajes
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.tienda.entregas.dto.PedidoCreadoEvent
+        enable.auto.commit: false
+        max.poll.interval.ms: 300000
 
-    # Admin Configuration (opcional)
     admin:
       properties:
-        bootstrap.servers: localhost:9092
+        bootstrap.servers: kafka:9092
 
   data:
     redis:
-      host: localhost
+      host: redis
       port: 6379
-      password: ""  
+      password: ""
 
   mvc:
     cors:
-      allowed-origins: http://localhost:3000
+      allowed-origins: "*"
       allowed-methods: GET, POST, PUT, DELETE
       allowed-headers: "*"
       allow-credentials: true
@@ -73,7 +71,6 @@ jwt:
   secret: "+7xPjMy3ShEYQClRLDpvwcy6GjDADONvh10c4iMxFrU="
   expiration: 3600000  
   issuer: miapp
-
 
 feign:
   client:
@@ -112,14 +109,16 @@ logging:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
   instance:
     instance-id: "${spring.application.name}:${spring.application.instance_id:${random.value}}"
+    prefer-ip-address: true
 
 springdoc:
   api-docs:
     enabled: true
   swagger-ui:
     enabled: true
-    path: /doc/swagger-ui.html
-  
+    path: /doc/swagger-ui.html 
