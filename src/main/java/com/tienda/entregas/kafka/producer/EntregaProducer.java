@@ -4,12 +4,14 @@ import com.tienda.entregas.dto.EntregaAsignadaEvent;
 import com.tienda.entregas.model.entity.Entrega;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "spring.kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class EntregaProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;

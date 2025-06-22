@@ -4,12 +4,14 @@ import com.tienda.entregas.dto.PedidoCreadoEvent;
 import com.tienda.entregas.service.EntregaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@ConditionalOnProperty(name = "spring.kafka.enabled", havingValue = "true", matchIfMissing = true)
 public class PedidoConsumer {
 
     private final EntregaService entregaService;

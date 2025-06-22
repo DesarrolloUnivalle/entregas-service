@@ -1,0 +1,130 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: entregas-service
+  
+  datasource:
+    url: jdbc:postgresql://ep-withered-king-aa21vv8q-pooler.westus3.azure.neon.tech:5432/neondb?user=neondb_owner&password=npg_0gnbkuv5IWlH&sslmode=require
+    username: neondb_owner
+    password: npg_0gnbkuv5IWlH
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  
+  zipkin:
+    base-url: http://zipkin:9411
+    enabled: false
+  sleuth:
+    enabled: false
+    
+  # Deshabilitar Kafka para testing
+  kafka:
+    enabled: false
+    bootstrap-servers: localhost:9092
+    topics:
+      pedido-creado: pedido-creado
+      entrega-asignada: entrega-asignada
+      entrega-completada: entrega-completada
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add-type-headers: false
+        acks: all
+        retries: 3
+        linger.ms: 10
+
+    consumer:
+      group-id: entregas-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+        spring.json.value.default.type: com.tienda.entregas.dto.PedidoCreadoEvent
+        enable.auto.commit: false
+        max.poll.interval.ms: 300000
+
+    admin:
+      properties:
+        bootstrap.servers: localhost:9092
+
+  # Deshabilitar Redis para testing
+  data:
+    redis:
+      enabled: false
+      host: localhost
+      port: 6379
+      password: ""
+
+  mvc:
+    cors:
+      allowed-origins: "*"
+      allowed-methods: GET, POST, PUT, DELETE
+      allowed-headers: "*"
+      allow-credentials: true
+
+jwt:
+  secret: "+7xPjMy3ShEYQClRLDpvwcy6GjDADONvh10c4iMxFrU="
+  expiration: 3600000  
+  issuer: miapp
+
+feign:
+  client:
+    config:
+      default:
+          connectTimeout: 5000
+          readTimeout: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus, *
+  endpoint:
+    health:
+      show-details: always
+    metrics:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
+    com.tienda.entregas: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.kafka: WARN
+    org.springframework.data.redis: WARN
+    org.springframework.cloud.openfeign: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    level: "%5p [${spring.application.name}, %X{traceId:-},%X{spanId:-}]"
+
+# Deshabilitar Eureka para testing
+eureka:
+  client:
+    enabled: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: false
+    register-with-eureka: false
+  instance:
+    instance-id: "${spring.application.name}:${spring.application.instance_id:${random.value}}"
+    prefer-ip-address: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+    path: /doc/swagger-ui.html 
