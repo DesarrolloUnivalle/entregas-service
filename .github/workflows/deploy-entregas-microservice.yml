@@ -64,22 +64,72 @@ jobs:
           # Aplicar los manifiestos de Kubernetes
           kubectl apply -f ${{ env.K8S_DIR }}/deployment-processed.yml
           kubectl apply -f ${{ env.K8S_DIR }}/service.yml
-          # Verificar el estado de los pods
-          kubectl get pods
-          kubectl describe pods
-          # Esperar a que el despliegue esté listo
-          kubectl rollout status deployment/${{ env.SERVICE_NAME }}-deployment --timeout=120s
+
+          # Log básico tras aplicar
+          echo "=== Pods actuales tras apply ==="
+          kubectl get pods --selector=app=${{ env.SERVICE_NAME }} -o wide
+          echo "=== Events recientes ==="
+          kubectl get events --sort-by='.metadata.creationTimestamp' | tail -n 20
+
+          # Esperar a que el despliegue esté listo, con timeout aumentado
+          kubectl rollout status deployment/${{ env.SERVICE_NAME }}-deployment --timeout=300s
+
+        # Capturar fallo en este bloque:
+      - name: Debug pods if rollout fails
+        if: failure()
+        run: |
+          echo "=== DESCRIBE PODS TRAS ROLLOUT ==="
+          kubectl describe pods --selector=app=${{ env.SERVICE_NAME }} -o wide
+          echo "=== EVENTS DETALLADOS ==="
+          kubectl get events --sort-by='.metadata.creationTimestamp' | tail -n 50
+          # Recoger logs de cada pod
+          for pod in $(kubectl get pods --selector=app=${{ env.SERVICE_NAME }} -o name); do
+            echo "---- Logs de $pod ----"
+            kubectl logs $pod --all-containers || true
+          done
+          # También revisar si hay init-containers fallando
+          echo "=== Estado de init-containers y contenedores ==="
+          kubectl get pods --selector=app=${{ env.SERVICE_NAME }} -o jsonpath='{range .items[*]}{.metadata.name}{" init:"}{.status.initContainerStatuses[*].state}{" cont:"}{.status.containerStatuses[*].state}{"\n"}{end}'
+
+      - name: Upload debug logs as artifact
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: entregas-service-debug-logs
+          path: |
+            # Generar un pequeño archivo con describe y events
+            ./save_debug.sh || echo "no save script"
+        # Alternativa: en el paso anterior podrías redirigir la salida a archivos y subirlos:
+        # run: |
+        #   mkdir -p debug
+        #   kubectl describe pods --selector=app=${{ env.SERVICE_NAME }} > debug/describe.txt || true
+        #   kubectl get events --sort-by='.metadata.creationTimestamp' > debug/events.txt || true
+        #   for pod in $(kubectl get pods --selector=app=${{ env.SERVICE_NAME }} -o name); do
+        #     kubectl logs $pod --all-containers > debug/logs-${pod##*/}.txt || true
+        #   done
+        # with:
+        #   name: entregas-service-debug-logs
+        #   path: debug
 
       - name: Verify deployment
         run: |
           # Esperar a que el servicio esté listo
           sleep 30
-          # Obtener la IP de Minikube
           MINIKUBE_IP=$(minikube ip)
-          # Verificar health endpoint
+          echo "Health endpoint:"
           curl -sSf http://$MINIKUBE_IP:30083/actuator/health
-          # Verificar prometheus endpoint
+          echo "Prometheus endpoint (head):"
           curl -sSf http://$MINIKUBE_IP:30083/actuator/prometheus | head -n 5
+        # Si falla aquí, también podemos capturar logs:
+      - name: Debug verify if fails
+        if: failure()
+        run: |
+          echo "=== Pods status al verificar endpoints ==="
+          kubectl get pods --selector=app=${{ env.SERVICE_NAME }} -o wide
+          for pod in $(kubectl get pods --selector=app=${{ env.SERVICE_NAME }} -o name); do
+            echo "---- Logs de $pod ----"
+            kubectl logs $pod --all-containers || true
+          done
 
       - name: Cleanup
         if: always()
