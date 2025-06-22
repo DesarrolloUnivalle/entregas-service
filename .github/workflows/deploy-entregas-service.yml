@@ -102,15 +102,15 @@ jobs:
           kubectl describe pods
           
           echo "⏳ Esperando a que el despliegue esté listo..."
-          kubectl rollout status deployment/${{ env.SERVICE_NAME }}-deployment --timeout=240s
+          kubectl rollout status deployment/${{ env.SERVICE_NAME }}-deployment --timeout=180s
           echo "✅ Despliegue completado"
 
       - name: Verify deployment
         run: |
-          echo "🔍 Verificando despliegue del Servicio de Entregas..."
+          echo "🔍 Verificando despliegue del Servicio de Entregas (perfil test)..."
           
           echo "⏳ Esperando a que el servicio esté listo..."
-          sleep 60
+          sleep 45
           
           echo "📊 Estado final de los pods:"
           kubectl get pods -o wide
@@ -127,7 +127,7 @@ jobs:
               break
             else
               echo "❌ Health endpoint no responde, reintentando..."
-              sleep 15
+              sleep 10
             fi
           done
           
@@ -141,20 +141,23 @@ jobs:
           
           echo "🔗 Verificando endpoints de la API..."
           echo "Endpoints disponibles:"
-          kubectl logs -l app=entregas-service --tail=100 | grep -i "mapped" || echo "No se encontraron logs de endpoints"
+          kubectl logs -l app=entregas-service --tail=50 | grep -i "mapped" || echo "No se encontraron logs de endpoints"
 
-      - name: Verify Kafka and Redis connectivity
+      - name: Verify test profile configuration
         run: |
-          echo "🔍 Verificando conectividad con servicios externos..."
+          echo "🔍 Verificando configuración del perfil test..."
           
-          echo "📋 Logs de conectividad Kafka:"
-          kubectl logs -l app=entregas-service --tail=50 | grep -i "kafka" || echo "No se encontraron logs de Kafka"
+          echo "📋 Logs de inicio del servicio:"
+          kubectl logs -l app=entregas-service --tail=20 | grep -i "profile" || echo "No se encontraron logs de perfil"
           
-          echo "📋 Logs de conectividad Redis:"
-          kubectl logs -l app=entregas-service --tail=50 | grep -i "redis" || echo "No se encontraron logs de Redis"
+          echo "📋 Verificando que Kafka esté deshabilitado:"
+          kubectl logs -l app=entregas-service --tail=50 | grep -i "kafka" || echo "No se encontraron logs de Kafka (correcto)"
           
-          echo "📋 Logs de Eureka:"
-          kubectl logs -l app=entregas-service --tail=50 | grep -i "eureka" || echo "No se encontraron logs de Eureka"
+          echo "📋 Verificando que Redis esté deshabilitado:"
+          kubectl logs -l app=entregas-service --tail=50 | grep -i "redis" || echo "No se encontraron logs de Redis (correcto)"
+          
+          echo "📋 Verificando que Eureka esté deshabilitado:"
+          kubectl logs -l app=entregas-service --tail=50 | grep -i "eureka" || echo "No se encontraron logs de Eureka (correcto)"
 
       - name: Display logs on failure
         if: failure()
@@ -171,9 +174,6 @@ jobs:
           
           echo "📋 Eventos del namespace:"
           kubectl get events --sort-by=.metadata.creationTimestamp || echo "No se pudieron obtener eventos"
-          
-          echo "📋 Verificación de conectividad de red:"
-          kubectl exec -it $(kubectl get pods -l app=entregas-service -o jsonpath='{.items[0].metadata.name}') -- curl -s http://localhost:8083/actuator/health || echo "No se pudo verificar health desde dentro del pod"
 
       - name: Cleanup
         if: always()

@@ -25,26 +25,14 @@ spec:
         - containerPort: 8083
         env:
         - name: SPRING_PROFILES_ACTIVE
-          value: "prod"
+          value: "test"
         - name: SERVER_PORT
           value: "8083"
-        - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
-          value: "kafka:9092"
-        - name: SPRING_DATA_REDIS_HOST
-          value: "redis"
-        - name: SPRING_DATA_REDIS_PORT
-          value: "6379"
-        - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
-          value: "http://eureka-server:8761/eureka/"
         - name: LOGGING_LEVEL_ROOT
           value: "INFO"
         - name: LOGGING_LEVEL_COM_TIENDA_ENTREGAS
           value: "DEBUG"
-        - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_KAFKA
-          value: "DEBUG"
-        - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_DATA_REDIS
-          value: "DEBUG"
-        - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_CLOUD_OPENFEIGN
+        - name: LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB
           value: "DEBUG"
         resources:
           limits:
