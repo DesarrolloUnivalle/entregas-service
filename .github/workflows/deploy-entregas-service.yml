@@ -215,7 +215,6 @@ jobs:
           
           echo "📋 Estado de Zookeeper:"
           kubectl get pods -l app=zookeeper
-
       - name: Display logs on failure
         if: failure()
         run: |
