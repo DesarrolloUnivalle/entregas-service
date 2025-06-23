@@ -251,3 +251,33 @@ jobs:
           minikube stop
           minikube delete
           echo "✅ Limpieza completada" 
+      - name: Authenticate with GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: gcp-despliegue-desarrollo 
+          install_components: 'gke-gcloud-auth-plugin'
+      - name: Configure kubectl
+        run: |
+          gcloud container clusters get-credentials cluster-desarrollo --zone us-central1-c --project gcp-despliegue-desarrollo
+      - name: Deploy to GKE
+        run: |
+          export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+          envsubst < ${{ env.K8S_DIR }}/deployment.yml > ${{ env.K8S_DIR }}/deployment-processed.yml
+          kubectl apply -f ${{ env.K8S_DIR }}/deployment-processed.yml
+          kubectl apply -f ${{ env.K8S_DIR }}/service.yml
+          kubectl rollout status deployment/${{ env.SERVICE_NAME }}-deployment --timeout=120s
+      - name: Debug deployment failure
+        if: failure()
+        run: |
+          echo "==== PODS ===="
+          kubectl get pods -o wide
+          
+          echo "==== DESCRIBE POD ===="
+          kubectl describe pod $(kubectl get pod -l app=${{ env.SERVICE_NAME }} -o jsonpath="{.items[0].metadata.name}")
+          
+          echo "==== LOGS ===="
+          kubectl logs $(kubectl get pod -l app=${{ env.SERVICE_NAME }} -o jsonpath="{.items[0].metadata.name}")

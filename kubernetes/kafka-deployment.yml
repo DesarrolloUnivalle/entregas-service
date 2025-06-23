@@ -59,7 +59,7 @@ spec:
         readinessProbe:
           tcpSocket:
             port: 9092
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
@@ -100,14 +100,14 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 2181
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         readinessProbe:
           tcpSocket:
             port: 2181
-          initialDelaySeconds: 15
+          initialDelaySeconds: 60
           periodSeconds: 5
           timeoutSeconds: 5
           failureThreshold: 3
