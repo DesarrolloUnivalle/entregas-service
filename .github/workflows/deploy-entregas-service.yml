@@ -283,3 +283,4 @@ jobs:
           
           echo "==== LOGS ===="
           kubectl logs $(kubectl get pod -l app=${{ env.SERVICE_NAME }} -o jsonpath="{.items[0].metadata.name}")
+          
