@@ -269,6 +269,8 @@ jobs:
           envsubst < ${{ env.K8S_DIR }}/deployment.yml > ${{ env.K8S_DIR }}/deployment-processed.yml
           kubectl apply -f ${{ env.K8S_DIR }}/deployment-processed.yml
           kubectl apply -f ${{ env.K8S_DIR }}/service.yml
+          kubectl apply -f ${{ env.K8S_DIR }}/kafka-deployment.yml
+          kubectl apply -f ${{ env.K8S_DIR }}/redis-deployment.yml
           kubectl rollout status deployment/${{ env.SERVICE_NAME }}-deployment --timeout=120s
       - name: Debug deployment failure
         if: failure()
