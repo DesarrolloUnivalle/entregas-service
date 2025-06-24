@@ -12,6 +12,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.core.env.Environment;
+
 import java.io.IOException;
 
 @Component
@@ -19,15 +21,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
     private final JwtUtil jwtUtil;
+    private final Environment env;
     
     // Constructor explícito
-    public JwtAuthFilter(JwtUtil jwtUtil) {
+    public JwtAuthFilter(JwtUtil jwtUtil, Environment env) {
         this.jwtUtil = jwtUtil;
+        this.env = env;
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return "test".equals(System.getProperty("spring.profiles.active"));
+        for (String profile : env.getActiveProfiles()) {
+            if ("test".equalsIgnoreCase(profile)) {
+                return true; // No aplicar el filtro en pruebas
+            }
+        }
+        return false; // Aplicar en otros perfiles (default, dev, prod, etc.)
     }
 
     @Override

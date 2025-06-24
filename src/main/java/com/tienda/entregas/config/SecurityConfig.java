@@ -1,7 +1,6 @@
 package com.tienda.entregas.config;
 
 import com.tienda.entregas.security.JwtAuthFilter;
-import com.tienda.entregas.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
