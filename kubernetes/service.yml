@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: entregas-service-service
+  name: entregas-service
 spec:
   selector:
     app: entregas-service
@@ -9,4 +9,4 @@ spec:
     - protocol: TCP
       port: 8083
       targetPort: 8083
-  type: LoadBalancer
+  type: ClusterIP

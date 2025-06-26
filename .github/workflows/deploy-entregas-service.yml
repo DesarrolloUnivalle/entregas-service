@@ -60,22 +60,22 @@ jobs:
           docker push ${{ env.DOCKER_IMAGE }}:latest
           echo "✅ Imagen subida exitosamente"
 
-      - name: Install Minikube
-        run: |
-          echo "📦 Instalando Minikube..."
-          curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-          sudo install minikube-linux-amd64 /usr/local/bin/minikube
-          minikube version
-          echo "✅ Minikube instalado"
+#      - name: Install Minikube
+ #       run: |
+  #        echo "📦 Instalando Minikube..."
+   #       curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    #      sudo install minikube-linux-amd64 /usr/local/bin/minikube
+     #     minikube version
+      #    echo "✅ Minikube instalado"
 
-      - name: Start Minikube
-        run: |
-          echo "🚀 Iniciando Minikube..."
-          minikube start --driver=docker
-          echo "📦 Habilitando addons..."
-          minikube addons enable ingress
-          minikube addons enable metrics-server
-          echo "✅ Minikube iniciado y configurado"
+#      - name: Start Minikube
+ #       run: |
+  #        echo "🚀 Iniciando Minikube..."
+   #       minikube start --driver=docker
+    #      echo "📦 Habilitando addons..."
+     #     minikube addons enable ingress
+      #    minikube addons enable metrics-server
+       #   echo "✅ Minikube iniciado y configurado"
 
       - name: Deploy Zookeeper first
         run: |
@@ -128,120 +128,120 @@ jobs:
           echo "⏳ Esperando un poco más para asegurar estabilidad..."
           sleep 30
 
-      - name: Deploy to Minikube
-        run: |
-          echo "🔧 Configurando entorno de Docker de Minikube..."
-          eval $(minikube -p minikube docker-env)
-          
-          echo "🐳 Construyendo imagen en entorno de Minikube..."
-          docker build -t ${{ env.DOCKER_IMAGE }}:latest .
-          echo "✅ Imagen construida en Minikube"
-          
-          echo "📝 Procesando archivos de Kubernetes..."
-          export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-          envsubst < ${{ env.K8S_DIR }}/deployment.yml > ${{ env.K8S_DIR }}/deployment-processed.yml
-          echo "✅ Archivos procesados"
-          
-          echo "🚀 Aplicando manifiestos de Kubernetes..."
-          kubectl apply -f ${{ env.K8S_DIR }}/deployment-processed.yml
-          kubectl apply -f ${{ env.K8S_DIR }}/service.yml
-          echo "✅ Manifiestos aplicados"
-          
-          echo "📊 Verificando estado de los pods..."
-          kubectl get pods
-          echo "📋 Detalles de los pods:"
-          kubectl describe pods
-          
-          echo "⏳ Esperando a que el despliegue esté listo..."
-          kubectl rollout status deployment/${{ env.SERVICE_NAME }}-deployment --timeout=300s
-          echo "✅ Despliegue completado"
+#      - name: Deploy to Minikube
+ #       run: |
+  #        echo "🔧 Configurando entorno de Docker de Minikube..."
+   #       eval $(minikube -p minikube docker-env)
+    #      
+     #     echo "🐳 Construyendo imagen en entorno de Minikube..."
+      #    docker build -t ${{ env.DOCKER_IMAGE }}:latest .
+       #   echo "✅ Imagen construida en Minikube"
+        #  
+         # echo "📝 Procesando archivos de Kubernetes..."
+          #export DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+         # envsubst < ${{ env.K8S_DIR }}/deployment.yml > ${{ env.K8S_DIR }}/deployment-processed.yml
+        #  echo "✅ Archivos procesados"
+       #   
+      #    echo "🚀 Aplicando manifiestos de Kubernetes..."
+     #     kubectl apply -f ${{ env.K8S_DIR }}/deployment-processed.yml
+    #      kubectl apply -f ${{ env.K8S_DIR }}/service.yml
+   #       echo "✅ Manifiestos aplicados"
+  #        
+ #         echo "📊 Verificando estado de los pods..."
+#          kubectl get pods
+ #         echo "📋 Detalles de los pods:"
+  #        kubectl describe pods
+   #       
+    #      echo "⏳ Esperando a que el despliegue esté listo..."
+     #     kubectl rollout status deployment/${{ env.SERVICE_NAME }}-deployment --timeout=300s
+      #    echo "✅ Despliegue completado"
 
-      - name: Verify deployment
-        run: |
-          echo "🔍 Verificando despliegue del Servicio de Entregas (perfil prod)..."
-          
-          echo "⏳ Esperando a que el servicio esté listo..."
-          sleep 60
-          
-          echo "📊 Estado final de los pods:"
-          kubectl get pods -o wide
-          
-          echo "🌐 Obteniendo IP de Minikube..."
-          MINIKUBE_IP=$(minikube ip)
-          echo "IP de Minikube: $MINIKUBE_IP"
-          
-          echo "🏥 Verificando health endpoint..."
-          for i in {1..5}; do
-            echo "Intento $i de verificación de health..."
-            if curl -sSf http://$MINIKUBE_IP:30083/actuator/health; then
-              echo "✅ Health endpoint responde correctamente"
-              break
-            else
-              echo "❌ Health endpoint no responde, reintentando..."
-              sleep 15
-            fi
-          done
-          
-          echo "📈 Verificando prometheus endpoint..."
-          curl -sSf http://$MINIKUBE_IP:30083/actuator/prometheus | head -n 5
-          echo "✅ Prometheus endpoint verificado"
-          
-          echo "📚 Verificando Swagger UI..."
-          curl -sSf http://$MINIKUBE_IP:30083/doc/swagger-ui.html | head -n 5
-          echo "✅ Swagger UI verificado"
-          
-          echo "🔗 Verificando endpoints de la API..."
-          echo "Endpoints disponibles:"
-          kubectl logs -l app=entregas-service --tail=50 | grep -i "mapped" || echo "No se encontraron logs de endpoints"
+#      - name: Verify deployment
+ #       run: |
+  #        echo "🔍 Verificando despliegue del Servicio de Entregas (perfil prod)..."
+   #       
+    #      echo "⏳ Esperando a que el servicio esté listo..."
+     #     sleep 60
+      #    
+       #   echo "📊 Estado final de los pods:"
+        #  kubectl get pods -o wide
+         # 
+          #echo "🌐 Obteniendo IP de Minikube..."
+         # MINIKUBE_IP=$(minikube ip)
+        #  echo "IP de Minikube: $MINIKUBE_IP"
+       #   
+      #    echo "🏥 Verificando health endpoint..."
+     #     for i in {1..5}; do
+    #        echo "Intento $i de verificación de health..."
+   #         if curl -sSf http://$MINIKUBE_IP:30083/actuator/health; then
+  #            echo "✅ Health endpoint responde correctamente"
+ #             break
+#            else
+ #             echo "❌ Health endpoint no responde, reintentando..."
+  #            sleep 15
+   #         fi
+    #      done
+     #     
+      #    echo "📈 Verificando prometheus endpoint..."
+       #   curl -sSf http://$MINIKUBE_IP:30083/actuator/prometheus | head -n 5
+        #  echo "✅ Prometheus endpoint verificado"
+         # 
+          #echo "📚 Verificando Swagger UI..."
+         # curl -sSf http://$MINIKUBE_IP:30083/doc/swagger-ui.html | head -n 5
+        #  echo "✅ Swagger UI verificado"
+       #   
+      #    echo "🔗 Verificando endpoints de la API..."
+     #     echo "Endpoints disponibles:"
+    #      kubectl logs -l app=entregas-service --tail=50 | grep -i "mapped" || echo "No se encontraron logs de endpoints"
 
-      - name: Verify Kafka and Redis connectivity
-        run: |
-          echo "🔍 Verificando conectividad con servicios externos..."
-          
-          echo "📋 Logs de conectividad Kafka:"
-          kubectl logs -l app=entregas-service --tail=50 | grep -i "kafka" || echo "No se encontraron logs de Kafka"
-          
-          echo "📋 Logs de conectividad Redis:"
-          kubectl logs -l app=entregas-service --tail=50 | grep -i "redis" || echo "No se encontraron logs de Redis"
-          
-          echo "📋 Logs de Eureka:"
-          kubectl logs -l app=entregas-service --tail=50 | grep -i "eureka" || echo "No se encontraron logs de Eureka"
-          
-          echo "📋 Estado de Kafka:"
-          kubectl get pods -l app=kafka
-          
-          echo "📋 Estado de Redis:"
-          kubectl get pods -l app=redis
-          
-          echo "📋 Estado de Zookeeper:"
-          kubectl get pods -l app=zookeeper
-      - name: Display logs on failure
-        if: failure()
-        run: |
-          echo "❌ Workflow falló. Mostrando logs para diagnóstico..."
-          echo "📋 Logs del Servicio de Entregas:"
-          kubectl logs -l app=entregas-service --tail=150 || echo "No se pudieron obtener logs"
-          
-          echo "📋 Estado de los pods:"
-          kubectl get pods -o wide || echo "No se pudieron obtener pods"
-          
-          echo "📋 Descripción del deployment:"
-          kubectl describe deployment entregas-service-deployment || echo "No se pudo describir deployment"
-          
-          echo "📋 Eventos del namespace:"
-          kubectl get events --sort-by=.metadata.creationTimestamp || echo "No se pudieron obtener eventos"
-          
-          echo "📋 Logs de Kafka:"
-          kubectl logs -l app=kafka --tail=50 || echo "No se pudieron obtener logs de Kafka"
-          
-          echo "📋 Logs de Zookeeper:"
-          kubectl logs -l app=zookeeper --tail=50 || echo "No se pudieron obtener logs de Zookeeper"
-          
-          echo "📋 Logs de Redis:"
-          kubectl logs -l app=redis --tail=50 || echo "No se pudieron obtener logs de Redis"
-          
-          echo "📋 Verificando conectividad de red:"
-          kubectl get services || echo "No se pudieron obtener servicios"
+#      - name: Verify Kafka and Redis connectivity
+ #       run: |
+  #        echo "🔍 Verificando conectividad con servicios externos..."
+   #       
+    #      echo "📋 Logs de conectividad Kafka:"
+     #     kubectl logs -l app=entregas-service --tail=50 | grep -i "kafka" || echo "No se encontraron logs de Kafka"
+      #    
+       #   echo "📋 Logs de conectividad Redis:"
+        #  kubectl logs -l app=entregas-service --tail=50 | grep -i "redis" || echo "No se encontraron logs de Redis"
+         # 
+          #echo "📋 Logs de Eureka:"
+         # kubectl logs -l app=entregas-service --tail=50 | grep -i "eureka" || echo "No se encontraron logs de Eureka"
+        #  
+       #   echo "📋 Estado de Kafka:"
+      #    kubectl get pods -l app=kafka
+     #     
+    #      echo "📋 Estado de Redis:"
+   #       kubectl get pods -l app=redis
+  #        
+ #         echo "📋 Estado de Zookeeper:"
+#          kubectl get pods -l app=zookeeper
+#      - name: Display logs on failure
+ #       if: failure()
+  #      run: |
+   #       echo "❌ Workflow falló. Mostrando logs para diagnóstico..."
+    #      echo "📋 Logs del Servicio de Entregas:"
+     #     kubectl logs -l app=entregas-service --tail=150 || echo "No se pudieron obtener logs"
+      #    
+       #   echo "📋 Estado de los pods:"
+        #  kubectl get pods -o wide || echo "No se pudieron obtener pods"
+         # 
+          #echo "📋 Descripción del deployment:"
+         # kubectl describe deployment entregas-service-deployment || echo "No se pudo describir deployment"
+        #  
+       #   echo "📋 Eventos del namespace:"
+      #    kubectl get events --sort-by=.metadata.creationTimestamp || echo "No se pudieron obtener eventos"
+     #     
+    #      echo "📋 Logs de Kafka:"
+   #       kubectl logs -l app=kafka --tail=50 || echo "No se pudieron obtener logs de Kafka"
+  #        
+ #         echo "📋 Logs de Zookeeper:"
+#          kubectl logs -l app=zookeeper --tail=50 || echo "No se pudieron obtener logs de Zookeeper"
+ #         
+  #        echo "📋 Logs de Redis:"
+   #       kubectl logs -l app=redis --tail=50 || echo "No se pudieron obtener logs de Redis"
+    #      
+     #     echo "📋 Verificando conectividad de red:"
+      #    kubectl get services || echo "No se pudieron obtener servicios"
 
       - name: Cleanup
         if: always()
@@ -250,10 +250,12 @@ jobs:
           minikube stop
           minikube delete
           echo "✅ Limpieza completada" 
+
       - name: Authenticate with GCP
         uses: google-github-actions/auth@v2
         with:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
+          
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v2
         with:
