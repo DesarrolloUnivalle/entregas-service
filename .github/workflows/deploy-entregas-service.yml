@@ -77,56 +77,56 @@ jobs:
       #    minikube addons enable metrics-server
        #   echo "✅ Minikube iniciado y configurado"
 
-      - name: Deploy Zookeeper first
-        run: |
-          echo "📦 Desplegando Zookeeper primero..."
-          kubectl apply -f ${{ env.K8S_DIR }}/kafka-deployment.yml
-          echo "✅ Zookeeper deployment aplicado"
-          
-          echo "⏳ Esperando a que Zookeeper esté listo..."
-          kubectl wait --for=condition=ready pod -l app=zookeeper --timeout=300s
-          echo "✅ Zookeeper listo"
-          
-          echo "📋 Verificando estado de Zookeeper:"
-          kubectl get pods -l app=zookeeper
-          kubectl logs -l app=zookeeper --tail=10
+#      - name: Deploy Zookeeper first
+ #       run: |
+  #        echo "📦 Desplegando Zookeeper primero..."
+   #       kubectl apply -f ${{ env.K8S_DIR }}/kafka-deployment.yml
+    #      echo "✅ Zookeeper deployment aplicado"
+     #     
+      #    echo "⏳ Esperando a que Zookeeper esté listo..."
+       #   kubectl wait --for=condition=ready pod -l app=zookeeper --timeout=300s
+        #  echo "✅ Zookeeper listo"
+         # 
+          #echo "📋 Verificando estado de Zookeeper:"
+         # kubectl get pods -l app=zookeeper
+        #  kubectl logs -l app=zookeeper --tail=10
 
-      - name: Deploy Kafka
-        run: |
-          echo "📦 Desplegando Kafka..."
-          echo "⏳ Esperando a que Kafka esté listo..."
-          kubectl wait --for=condition=ready pod -l app=kafka --timeout=300s
-          echo "✅ Kafka listo"
-          
-          echo "📋 Verificando estado de Kafka:"
-          kubectl get pods -l app=kafka
-          kubectl logs -l app=kafka --tail=10
+#      - name: Deploy Kafka
+ #       run: |
+  #        echo "📦 Desplegando Kafka..."
+   #       echo "⏳ Esperando a que Kafka esté listo..."
+    #      kubectl wait --for=condition=ready pod -l app=kafka --timeout=300s
+     #     echo "✅ Kafka listo"
+      #    
+       #   echo "📋 Verificando estado de Kafka:"
+        #  kubectl get pods -l app=kafka
+         # kubectl logs -l app=kafka --tail=10
 
-      - name: Deploy Redis
-        run: |
-          echo "📦 Desplegando Redis..."
-          kubectl apply -f ${{ env.K8S_DIR }}/redis-deployment.yml
-          echo "✅ Redis deployment aplicado"
-          
-          echo "⏳ Esperando a que Redis esté listo..."
-          kubectl wait --for=condition=ready pod -l app=redis --timeout=120s
-          echo "✅ Redis listo"
-          
-          echo "📋 Verificando estado de Redis:"
-          kubectl get pods -l app=redis
+#      - name: Deploy Redis
+ #       run: |
+  #        echo "📦 Desplegando Redis..."
+   #       kubectl apply -f ${{ env.K8S_DIR }}/redis-deployment.yml
+    #      echo "✅ Redis deployment aplicado"
+     #     
+      #    echo "⏳ Esperando a que Redis esté listo..."
+       #   kubectl wait --for=condition=ready pod -l app=redis --timeout=120s
+        #  echo "✅ Redis listo"
+         # 
+          #echo "📋 Verificando estado de Redis:"
+         # kubectl get pods -l app=redis
 
-      - name: Verify all services are ready
-        run: |
-          echo "🔍 Verificando que todos los servicios estén listos..."
-          
-          echo "📋 Estado de todos los pods:"
-          kubectl get pods
-          
-          echo "📋 Verificando servicios:"
-          kubectl get services
-          
-          echo "⏳ Esperando un poco más para asegurar estabilidad..."
-          sleep 30
+#      - name: Verify all services are ready
+ #       run: |
+  #        echo "🔍 Verificando que todos los servicios estén listos..."
+   #       
+    #      echo "📋 Estado de todos los pods:"
+     #     kubectl get pods
+      #    
+       #   echo "📋 Verificando servicios:"
+        #  kubectl get services
+         # 
+          #echo "⏳ Esperando un poco más para asegurar estabilidad..."
+         # sleep 30
 
 #      - name: Deploy to Minikube
  #       run: |
