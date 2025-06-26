@@ -243,13 +243,13 @@ jobs:
      #     echo "📋 Verificando conectividad de red:"
       #    kubectl get services || echo "No se pudieron obtener servicios"
 
-      - name: Cleanup
-        if: always()
-        run: |
-          echo "🧹 Limpiando recursos..."
-          minikube stop
-          minikube delete
-          echo "✅ Limpieza completada" 
+#      - name: Cleanup
+ #       if: always()
+  #      run: |
+   #       echo "🧹 Limpiando recursos..."
+    #      minikube stop
+     #     minikube delete
+      #    echo "✅ Limpieza completada" 
 
       - name: Authenticate with GCP
         uses: google-github-actions/auth@v2
